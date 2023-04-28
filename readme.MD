@@ -6,6 +6,8 @@ docker exec -it broker kafka-topics --create \
 --bootstrap-server localhost:9092 \
 --topic stream1ws
 
+<br>
+
 ## Upgrade pip3 first
 pip3 install --upgrade pip
 
@@ -17,6 +19,8 @@ pip3 freeze > requirements.txt
 
 ## List all installed libraries 
 pip3 list
+
+<br>
 
 ## Download flink-sql-connector-kafka-1.17.0.jar
 http --download https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-kafka/1.17.0/flink-sql-connector-kafka-1.17.0.jar
