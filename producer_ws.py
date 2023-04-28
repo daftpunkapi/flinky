@@ -20,11 +20,14 @@ def on_message(ws, message):
     data = json.loads(message)
     data = data['data']
     filtered_data = [{'price':d['p'], 'timez':d['t']} for d in data]
-    filtered_data = json.dumps(filtered_data)
-    print(filtered_data)
-
-    # Produce message to Kafka topic
-    producer.produce(kafka_topic, value=filtered_data, callback=delivery_report)
+    
+    # print(type(filtered_data))
+    for record in filtered_data:
+        # Produce message to Kafka topic
+        record = json.dumps(record)
+        # print(record)
+        # print(type(record))
+        producer.produce(kafka_topic, value=record, callback=delivery_report)
 
 
 def on_error(ws, error):
@@ -34,7 +37,7 @@ def on_close(ws):
     print("### closed ###")
 
 def on_open(ws):
-    ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
+    ws.send('{"type":"subscribe","symbol":"CFLT"}')
 
 if __name__ == "__main__":
     websocket.enableTrace(True)

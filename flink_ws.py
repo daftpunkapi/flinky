@@ -18,7 +18,7 @@ def log_processing():
     t_env.get_config().set("pipeline.jars", "file:///Users/Raghav/Desktop/flink-sql-connector-kafka-1.17.0.jar")
     
     source_ddl = """
-            CREATE TABLE source_table(
+            CREATE TABLE source_table_ws(
                 timez BIGINT,
                 price DOUBLE
             ) WITH (
@@ -35,7 +35,7 @@ def log_processing():
             """
     t_env.execute_sql(source_ddl)
 
-    tbl = t_env.from_path('source_table')
+    tbl = t_env.from_path('source_table_ws')
     # tbl.print_schema()
 
     tbl.execute().print()
