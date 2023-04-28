@@ -4,16 +4,21 @@ import kafka
 admin_client = kafka.KafkaAdminClient(bootstrap_servers=["127.0.0.1:9092"])
 topic_list = admin_client.list_topics()
 
-for topic in topic_list:
-    print(topic)
+print("D: Delete All Topics")
+print("L: List All Topics")
+ans = input()
 
-# ⭐️ Delete all topics
-# admin_client.delete_topics(topics=topic_list)
-# print("topic deleted")
+if ans == "L":
+    for topic in topic_list:
+        print(topic)
 
-# topic_list = admin_client.list_topics()
-# for topic in topic_list:
-#     print(topic)
+elif ans == "D":
+    for topic in topic_list:
+        admin_client.delete_topics(topics=[topic])
+        print(topic + " topic deleted")
+
+else:
+    print("Enter valid character")
 
 # ⭐️ adding new topic in kafka
 # def create_topics(topic_names):
