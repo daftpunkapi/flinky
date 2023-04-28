@@ -19,7 +19,7 @@ def delivery_report(err, msg):
 def on_message(ws, message):
     data = json.loads(message)
     data = data['data']
-    filtered_data = [{'price':d['p'], 'time':d['t']} for d in data]
+    filtered_data = [{'price':d['p'], 'timez':d['t']} for d in data]
     filtered_data = json.dumps(filtered_data)
     print(filtered_data)
 

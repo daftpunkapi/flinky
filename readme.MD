@@ -20,3 +20,5 @@ pip3 list
 
 ## Download flink-sql-connector-kafka-1.17.0.jar
 http --download https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-kafka/1.17.0/flink-sql-connector-kafka-1.17.0.jar
+
+Make sure the path is correct in the flink scripts

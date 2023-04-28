@@ -12,14 +12,19 @@ admin_client = kafka.KafkaAdminClient(bootstrap_servers=["127.0.0.1:9092"])
 topic_list = admin_client.list_topics()
 print("\nL: List All Topics")
 print("D: Delete All Topics")
+print("C: List All Consumer Groups")
 ans = input("\nInput: ")
 
 if ans == "L":
     for topic in topic_list:
         print(topic)
-        print(cluster_metadata.topics())
+        # print(cluster_metadata.topics())
         # partitions = admin_client.describe_topics([topic]).topics[0].partitions
         # print(f"Topic: {topic}, Partitions: {partitions}")
+
+elif ans == "C":
+    con_groups = admin_client.list_consumer_groups(broker_ids=["bootstrap-0"])
+    print(con_groups)
 
 elif ans == "D":
     for topic in topic_list:

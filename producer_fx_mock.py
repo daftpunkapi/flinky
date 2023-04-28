@@ -14,7 +14,7 @@ while True:
     fx_rate = random.uniform(75, 100)
     
     # Create JSON object with FX rate and timestamp
-    fx_rate_json = {'timestamp': int(time.time()*1000), 'fx_rate': fx_rate}
+    fx_rate_json = {'timez': int(time.time()*1000), 'fx_rate': fx_rate}
     
     # Serialize JSON object to string
     fx_rate_str = json.dumps(fx_rate_json)
