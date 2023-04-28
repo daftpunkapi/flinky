@@ -1,16 +1,25 @@
-# pip3 install kafka-python --user
 import kafka
 
+# Get list of all available brokers conencted to localhost cluster
+cluster_metadata = kafka.cluster.ClusterMetadata(bootstrap_servers=["127.0.0.1:9092"])
+brokers = cluster_metadata.brokers()
+broker_ids = [broker.nodeId for broker in brokers]
+print("\nThe available broker(s):")
+print(broker_ids)
+
+# Show all / delete all kafka topics for the cluster
 admin_client = kafka.KafkaAdminClient(bootstrap_servers=["127.0.0.1:9092"])
 topic_list = admin_client.list_topics()
-
+print("\nL: List All Topics")
 print("D: Delete All Topics")
-print("L: List All Topics")
-ans = input()
+ans = input("\nInput: ")
 
 if ans == "L":
     for topic in topic_list:
         print(topic)
+        print(cluster_metadata.topics())
+        # partitions = admin_client.describe_topics([topic]).topics[0].partitions
+        # print(f"Topic: {topic}, Partitions: {partitions}")
 
 elif ans == "D":
     for topic in topic_list:
@@ -20,7 +29,8 @@ elif ans == "D":
 else:
     print("Enter valid character")
 
-# ⭐️ adding new topic in kafka
+
+# Adding new topic in kafka
 # def create_topics(topic_names):
 
 #     existing_topic_list = consumer.topics()
