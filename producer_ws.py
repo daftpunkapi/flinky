@@ -37,7 +37,7 @@ def on_close(ws):
     print("### closed ###")
 
 def on_open(ws):
-    ws.send('{"type":"subscribe","symbol":"CFLT"}')
+    ws.send('{"type":"subscribe","symbol":"BINANCE:DOGEUSDT"}')
 
 if __name__ == "__main__":
     websocket.enableTrace(True)

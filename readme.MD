@@ -1,3 +1,7 @@
+# CREATE VIRTUAL ENV
+python3 -m venv {name}
+source {name}/bin/activate
+
 # DOCKER
 ### A. Create Docker container from dockerfile 
 docker-compose up -d 

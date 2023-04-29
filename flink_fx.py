@@ -1,21 +1,23 @@
-from pyflink.common import Configuration
+# from pyflink.common import Configuration
 from pyflink.table import EnvironmentSettings, TableEnvironment
 
 # create a streaming TableEnvironment
 
 
 def log_processing():
-    config = Configuration()
-    config.set_string('execution.buffer-timeout', '1 min')
-    env_settings = EnvironmentSettings \
-        .new_instance() \
-        .in_streaming_mode() \
-        .with_configuration(config) \
-        .build()
+    # config = Configuration()
+    # config.set_string('execution.buffer-timeout', '1 min')
+    # env_settings = EnvironmentSettings \
+    #     .new_instance() \
+    #     .in_streaming_mode() \
+    #     .with_configuration(config) \
+    #     .build()
+    env_settings = EnvironmentSettings.in_streaming_mode()
+    
     t_env = TableEnvironment.create(env_settings)
     
     # specify connector and format jars
-    t_env.get_config().set("pipeline.jars", "file:///Users/Raghav/Desktop/flink-sql-connector-kafka-1.17.0.jar")
+    t_env.get_config().set("pipeline.jars", "file:///Users/karanbawejapro/Desktop/flink_v2/flinky/flink-sql-connector-kafka-1.17.0.jar")
     
     source_ddl = """
             CREATE TABLE source_table_fx(
@@ -36,7 +38,7 @@ def log_processing():
     t_env.execute_sql(source_ddl)
 
     tbl = t_env.from_path('source_table_fx')
-    # tbl.print_schema()
+    tbl.print_schema()
 
     tbl.execute().print()
 
