@@ -1,8 +1,8 @@
 # from pyflink.common import Configuration
 from pyflink.table import EnvironmentSettings, TableEnvironment
+from pyflink.table.expressions import *
 
 # create a streaming TableEnvironment
-
 
 def log_processing():
     # config = Configuration()
@@ -38,9 +38,19 @@ def log_processing():
     t_env.execute_sql(source_ddl)
 
     tbl = t_env.from_path('source_table_fx')
-    tbl.print_schema()
+    
+    # tbl.print_schema()
 
-    tbl.execute().print()
+    # tbl.add_columns(to_timestamp_ltz(col('timez'),3).alias('time_ltz'))
+    result = t_env.sql_query("SELECT *,\
+                               CAST(\
+                                CONCAT(\
+                                    FROM_UNIXTIME(timez / 1000, 'yyyy-MM-dd HH:mm:ss.'), \
+                                    LPAD(CAST(MOD(timez, 1000) AS VARCHAR(3)), 3, '0')) AS TIMESTAMP(3)) AS ltz_time\
+                            from %s" % tbl)
+
+    print(result.get_schema())
+    result.execute().print()
 
 
 if __name__ == '__main__':
