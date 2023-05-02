@@ -2,7 +2,7 @@
 from pyflink.table import EnvironmentSettings, TableEnvironment
 from pyflink.table.expressions import *
 
-# create a streaming TableEnvironment
+# create a TableEnvironment
 
 def log_processing():
     # config = Configuration()
@@ -17,7 +17,7 @@ def log_processing():
     t_env = TableEnvironment.create(env_settings)
     
     # specify connector and format jars
-    t_env.get_config().set("pipeline.jars", "file:///Users/karanbawejapro/Desktop/flink_v2/flinky/flink-sql-connector-kafka-1.17.0.jar")
+    t_env.get_config().set("pipeline.jars", "file:///Users/Raghav/Desktop/flink-sql-connector-kafka-1.17.0.jar")
     
     source_ddl = """
             CREATE TABLE source_table_fx(
@@ -35,13 +35,21 @@ def log_processing():
               'format' = 'json'
             )
             """
+
+    #t_env is an Table Environment - the entry point and central context for creating Table and SQL API programs
+    
+    # execute_sql() : Executes the given single statement, and return the execution result.
+    # Automatically REGISTERS the table source_table_fx (maybe?? else it happens in the from_path method)
     t_env.execute_sql(source_ddl)
 
+    # from_path() : Reads a registered table and returns the resulting Table
     tbl = t_env.from_path('source_table_fx')
     
     # tbl.print_schema()
+    # tbl.execute().print()
 
-    # tbl.add_columns(to_timestamp_ltz(col('timez'),3).alias('time_ltz'))
+    
+    # sql_query() : Evaluates a SQL query on registered tables and retrieves the result as a Table
     result = t_env.sql_query("SELECT *,\
                                CAST(\
                                 CONCAT(\
@@ -49,7 +57,7 @@ def log_processing():
                                     LPAD(CAST(MOD(timez, 1000) AS VARCHAR(3)), 3, '0')) AS TIMESTAMP(3)) AS ltz_time\
                             from %s" % tbl)
 
-    print(result.get_schema())
+    result.print_schema()
     result.execute().print()
 
 
