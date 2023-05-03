@@ -22,7 +22,8 @@ def log_processing():
     source_ddl = """
             CREATE TABLE source_table_fx(
                 timez BIGINT,
-                fx_rate DOUBLE
+                fx_rate DOUBLE,
+                kafka_time AS PROCTIME()
             ) WITH (
               'connector' = 'kafka',
               'topic' = 'stream2fx',
@@ -39,26 +40,48 @@ def log_processing():
     #t_env is an Table Environment - the entry point and central context for creating Table and SQL API programs
     
     # execute_sql() : Executes the given single statement, and return the execution result.
-    # Automatically REGISTERS the table source_table_fx (maybe?? else it happens in the from_path method)
+    # Automatically REGISTERS the table 'source_table_fx' (maybe?)
     t_env.execute_sql(source_ddl)
 
     # from_path() : Reads a registered table and returns the resulting Table
     tbl = t_env.from_path('source_table_fx')
     
+    # print('\nSource Schema:')
     # tbl.print_schema()
     # tbl.execute().print()
 
     
     # sql_query() : Evaluates a SQL query on registered tables and retrieves the result as a Table
-    result = t_env.sql_query("SELECT *,\
-                               CAST(\
-                                CONCAT(\
-                                    FROM_UNIXTIME(timez / 1000, 'yyyy-MM-dd HH:mm:ss.'), \
-                                    LPAD(CAST(MOD(timez, 1000) AS VARCHAR(3)), 3, '0')) AS TIMESTAMP(3)) AS ltz_time\
-                            from %s" % tbl)
+    # result = t_env.sql_query("SELECT *,\
+    #                            CAST(\
+    #                             CONCAT(\
+    #                                 FROM_UNIXTIME(timez / 1000, 'yyyy-MM-dd HH:mm:ss.'), \
+    #                                 LPAD(CAST(MOD(timez, 1000) AS VARCHAR(3)), 3, '0')) AS TIMESTAMP(3)) AS ltz_time\
+    #                         from source_table_fx")
 
-    result.print_schema()
-    result.execute().print()
+    # result.print_schema()
+    # result.execute().print()
+
+    #####################################################################
+    # Define Tumbling Window Aggregate Calculation of Revenue per Seller
+    #
+    # - for every 5 second non-overlapping window
+    # - calculate the revenue per seller
+    #####################################################################
+    sql = """
+        SELECT
+          TUMBLE_START(proctime, INTERVAL '5' SECONDS) AS window_start,
+          TUMBLE_END(proctime, INTERVAL '5' SECONDS) AS window_end,
+          AVG(fx_rate) AS fx_window_rate
+        FROM source_table_fx
+        GROUP BY
+          TUMBLE(proctime, INTERVAL '5' SECONDS)
+    """
+    windowed_rev = t_env.sql_query(sql)
+
+    print('\nProcess Sink Schema:\n')
+    windowed_rev.print_schema()
+    windowed_rev.execute().print()
 
 
 if __name__ == '__main__':

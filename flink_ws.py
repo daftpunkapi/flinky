@@ -39,7 +39,7 @@ def log_processing():
 
     tbl = t_env.from_path('source_table_ws')
 
-        # tbl.print_schema()
+    # tbl.print_schema()
 
     # tbl.add_columns(to_timestamp_ltz(col('timez'),3).alias('time_ltz'))
     result = t_env.sql_query("SELECT *,\
@@ -49,8 +49,11 @@ def log_processing():
                                     LPAD(CAST(MOD(timez, 1000) AS VARCHAR(3)), 3, '0')) AS TIMESTAMP(3)) AS ltz_time\
                             from %s" % tbl)
 
-    print(result.get_schema())
-    result.execute().print()
+    # print(result.get_schema())
+    # result.execute().print()
+
+
+
 
 
 if __name__ == '__main__':
