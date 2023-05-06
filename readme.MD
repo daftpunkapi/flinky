@@ -2,6 +2,8 @@
 python3 -m venv {name}
 source {name}/bin/activate
 
+<br>
+
 # DOCKER
 ### A. Create Docker container from dockerfile 
 docker-compose up -d 
