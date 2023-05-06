@@ -15,7 +15,7 @@ def log_processing():
     
     t_env = TableEnvironment.create(env_settings)
     
-    # specify connector and format jars
+    ##### specify connector and format jars
     t_env.get_config().set("pipeline.jars", "file:///Users/Raghav/Desktop/flink-sql-connector-kafka-1.17.0.jar")
     t_env.get_config().set("table.exec.source.idle-timeout", "1000")
     
@@ -38,13 +38,13 @@ def log_processing():
             )
             """
 
-    #t_env is a Table Environment - the entry point and central context for creating Table and SQL API programs
+    ##### t_env is a Table Environment - the entry point and central context for creating Table and SQL API programs
   
-    # execute_sql() : Executes the given single statement, and return the execution result (status) -> OK or error.
-    # Automatically REGISTERS the table 'source_table_fx' (maybe?)
+    ##### execute_sql() : Executes the given single statement, and return the execution result (status) -> OK or error.
+    ##### Automatically REGISTERS the table 'source_table_fx' (maybe?)
     t_env.execute_sql(source_ddl)
 
-    # from_path() : Reads a registered table and returns the resulting Table
+    ##### from_path() : Reads a registered table and returns the resulting Table
     tbl = t_env.from_path('source_table_fx')
     
     print('\nSource Schema (tbl) :')
@@ -72,6 +72,9 @@ def log_processing():
 
     print('\nProcess Schema (windowed_rev) :\n')
     windowed_rev.print_schema()
+    
+    ##### execute() : executes the pipeline and retrieve the transformed data locally during development
+    # windowed_rev.execute().print()
 
     sink_ddl_print = """
         CREATE TABLE printx (
@@ -84,10 +87,12 @@ def log_processing():
     )
     """
     t_env.execute_sql(sink_ddl_print)
-
-    statement_set = t_env.create_statement_set()
-    statement_set.add_insert("printx", windowed_rev)
-    statement_set.execute().wait()
+      
+    windowed_rev.execute_insert('printx').wait()
+    
+    # statement_set = t_env.create_statement_set()
+    # statement_set.add_insert("printx", windowed_rev)
+    # statement_set.execute().wait()
 
 if __name__ == '__main__':
     log_processing()
