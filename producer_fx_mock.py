@@ -25,4 +25,4 @@ while True:
     producer.send('stream2fx', fx_rate_str.encode('utf-8'))
     
     # Wait for 3 seconds
-    time.sleep(random.uniform(2,4))
+    time.sleep(random.uniform(1,3))
