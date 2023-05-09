@@ -16,7 +16,7 @@ def log_processing():
     t_env = TableEnvironment.create(env_settings)
     
     ##### specify connector and format jars
-    t_env.get_config().set("pipeline.jars", "file:///Users/Raghav/Desktop/flink-sql-connector-kafka-1.17.0.jar")
+    t_env.get_config().set("pipeline.jars", "file:///Users/karanbawejapro/Desktop/flinky/flink-sql-connector-kafka-1.17.0.jar")
     t_env.get_config().set("table.exec.source.idle-timeout", "1000")
     
     source_ddl = """
@@ -87,7 +87,6 @@ def log_processing():
     )
     """
     t_env.execute_sql(sink_ddl_print)
-      
     windowed_rev.execute_insert('printx').wait()
     
     # statement_set = t_env.create_statement_set()
