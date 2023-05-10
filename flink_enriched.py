@@ -67,8 +67,8 @@ def log_processing():
     tbl1.window(Tumble.over(lit(5).seconds).on(col("timez_ltz")).alias("w"))
     .group_by(col("w"))
     .select(
-        col("w").start.alias("window_start"),
-        col("w").end.alias("window_end"),
+        col("w").start.alias("window_start_fx"),
+        col("w").end.alias("window_end_fx"),
         col("fx_rate").avg.alias("avg_fx_rate"),
         col("fx_rate").count.alias("count")
         )
@@ -78,17 +78,19 @@ def log_processing():
     tbl2.window(Tumble.over(lit(5).seconds).on(col("timez_ltz")).alias("w"))
     .group_by(col("w"))
     .select(
-        col("w").start.alias("window_start"),
-        col("w").end.alias("window_end"),
+        col("w").start.alias("window_start_ws"),
+        col("w").end.alias("window_end_ws"),
         col("price").avg.alias("avg_price"),
         col("price").count.alias("count")
         )
     )
 
+    print("helloworld1")
+
     sink_ddl1_print = """
         CREATE TABLE printx (
-        `window_start` TIMESTAMP(3),
-        `window_end` TIMESTAMP(3),
+        `window_start_fx` TIMESTAMP(3),
+        `window_end_fx` TIMESTAMP(3),
         `avg_fx_rate` DOUBLE,
         `count` BIGINT
     ) WITH (
@@ -99,8 +101,8 @@ def log_processing():
 
     sink_ddl2_print = """
         CREATE TABLE printz (
-        `window_start` TIMESTAMP(3),
-        `window_end` TIMESTAMP(3),
+        `window_start_ws` TIMESTAMP(3),
+        `window_end_ws` TIMESTAMP(3),
         `avg_price` DOUBLE,
         `count` BIGINT
     ) WITH (
@@ -109,7 +111,57 @@ def log_processing():
     """
     t_env.execute_sql(sink_ddl2_print)
 
+    print("helloworld2")
+
+    # Join the two tables on the window start and end time
+    joined_tables = (
+        windowed_fx.join(windowed_ws)
+        .where(col("window_start_ws") == col("window_start_fx"))
+        .where(col("window_end_ws") == col("window_end_fx"))
+        .select(
+            col("window_start_ws"),
+            col("window_end_ws"),
+            col("avg_fx_rate"),
+            col("avg_price")
+            )
+        )
     
+    print("helloworld3")
+   
+    # Calculate the product of avg_fx_rate and avg_price
+    result_table = joined_tables.select(
+        col("window_start_ws"),
+        col("window_end_ws"),
+        col("avg_fx_rate") * col("avg_price")).alias("result")
+    
+    print("helloworld4")
+
+    # Define the Kafka sink
+    sink_ddl_kafka = """
+        CREATE TABLE sink_kafka (
+            window_start_ws TIMESTAMP(3),
+            window_end_ws TIMESTAMP(3),
+            result DOUBLE
+        ) WITH (
+            'connector' = 'kafka',
+            'topic' = 'output',
+            'properties.bootstrap.servers' = 'localhost:9092',
+            'format' = 'json'
+        )
+    """
+    print("helloworld5")
+    
+    # Execute the Kafka sink DDL
+    t_env.execute_sql(sink_ddl_kafka)
+
+    # Write the result table to the Kafka sink
+    result_table.execute_insert("sink_kafka")
+
+
+if __name__ == '__main__':
+    log_processing()
+
+
     # statement_set1 = t_env.create_statement_set()
     # statement_set1.add_insert("printx", windowed_fx)
     # statement_set1.execute()
@@ -117,11 +169,6 @@ def log_processing():
     # statement_set2 = t_env.create_statement_set()
     # statement_set2.add_insert("printz", windowed_ws)
     # statement_set2.execute()
-
-if __name__ == '__main__':
-    log_processing()
-
-
 
 
     # # ADAM MQ-> Use Table API to perform inner join between sellers and product sales
