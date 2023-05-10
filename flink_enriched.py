@@ -6,7 +6,6 @@ from pyflink.table.window import Tumble
 # 1
 # Create a TableEnvironment
 # Using Table API for manipulation 
-# However table environment defined in streaming mode
 #####################################################################
 
 def log_processing():
@@ -70,7 +69,7 @@ def log_processing():
         col("w").start.alias("window_start_fx"),
         col("w").end.alias("window_end_fx"),
         col("fx_rate").avg.alias("avg_fx_rate"),
-        col("fx_rate").count.alias("count")
+        col("fx_rate").count.alias("count_fx")
         )
     )
 
@@ -81,102 +80,51 @@ def log_processing():
         col("w").start.alias("window_start_ws"),
         col("w").end.alias("window_end_ws"),
         col("price").avg.alias("avg_price"),
-        col("price").count.alias("count")
+        col("price").count.alias("count_ws")
         )
     )
-
-    print("helloworld1")
-
-    sink_ddl1_print = """
-        CREATE TABLE printx (
-        `window_start_fx` TIMESTAMP(3),
-        `window_end_fx` TIMESTAMP(3),
-        `avg_fx_rate` DOUBLE,
-        `count` BIGINT
-    ) WITH (
-        'connector' = 'print'
-    )
-    """
-    t_env.execute_sql(sink_ddl1_print)
-
-    sink_ddl2_print = """
-        CREATE TABLE printz (
-        `window_start_ws` TIMESTAMP(3),
-        `window_end_ws` TIMESTAMP(3),
-        `avg_price` DOUBLE,
-        `count` BIGINT
-    ) WITH (
-        'connector' = 'print'
-    )
-    """
-    t_env.execute_sql(sink_ddl2_print)
-
-    print("helloworld2")
-
-    # Join the two tables on the window start and end time
-    joined_tables = (
-        windowed_fx.join(windowed_ws)
-        .where(col("window_start_ws") == col("window_start_fx"))
-        .where(col("window_end_ws") == col("window_end_fx"))
-        .select(
-            col("window_start_ws"),
-            col("window_end_ws"),
-            col("avg_fx_rate"),
-            col("avg_price")
-            )
-        )
     
-    print("helloworld3")
-   
-    # Calculate the product of avg_fx_rate and avg_price
-    result_table = joined_tables.select(
+    joined_table = windowed_fx.join(windowed_ws).where(col('window_start_fx') == col('window_start_ws')).select(col('window_start_ws'), col('avg_fx_rate'), col('avg_price'))
+    result_table = joined_table.select(
         col("window_start_ws"),
-        col("window_end_ws"),
+        col("avg_fx_rate"),
+        col("avg_price"),
         col("avg_fx_rate") * col("avg_price")).alias("result")
     
-    print("helloworld4")
+    # Option 2
+    # sink_ddl_final = """
+    #     CREATE TABLE printa (
+    #     `window_start_ws` TIMESTAMP(3),
+    #     `avg_fx_rate` DOUBLE,
+    #     `avg_price` DOUBLE,
+    #     `result` DOUBLE
+    # ) WITH (
+    #     'connector' = 'print'
+    # )
+    # """
+    # t_env.execute_sql(sink_ddl_final)
+    # result_table.execute_insert('printa').wait()
+
 
     # Define the Kafka sink
     sink_ddl_kafka = """
         CREATE TABLE sink_kafka (
-            window_start_ws TIMESTAMP(3),
-            window_end_ws TIMESTAMP(3),
-            result DOUBLE
+            `window_start_ws` TIMESTAMP(3),
+            `avg_fx_rate` DOUBLE,
+            `avg_price` DOUBLE,
+            `result` DOUBLE
         ) WITH (
             'connector' = 'kafka',
-            'topic' = 'output',
+            'topic' = 'enriched',
             'properties.bootstrap.servers' = 'localhost:9092',
             'format' = 'json'
         )
     """
-    print("helloworld5")
-    
     # Execute the Kafka sink DDL
     t_env.execute_sql(sink_ddl_kafka)
 
     # Write the result table to the Kafka sink
-    result_table.execute_insert("sink_kafka")
-
-
+    result_table.execute_insert("sink_kafka").wait()
+    
 if __name__ == '__main__':
     log_processing()
-
-
-    # statement_set1 = t_env.create_statement_set()
-    # statement_set1.add_insert("printx", windowed_fx)
-    # statement_set1.execute()
-
-    # statement_set2 = t_env.create_statement_set()
-    # statement_set2.add_insert("printz", windowed_ws)
-    # statement_set2.execute()
-
-
-    # # ADAM MQ-> Use Table API to perform inner join between sellers and product sales
-    # # to yield result of all sellers who have sales
-    # seller_products = sales_tbl.join(sellers_tbl, sales_tbl.seller_id == sellers_tbl.id)\
-    #                         .select(sellers_tbl.city, sellers_tbl.state,
-    #                               sales_tbl.product, sales_tbl.product_price)\
-    #                         .distinct()
-
-    # print('\nseller_products data')
-    # print(seller_products.to_pandas())
