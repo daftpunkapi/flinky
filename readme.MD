@@ -1,6 +1,6 @@
 # Create Virtual Environment
-python3 -m venv {name}
-source {name}/bin/activate
+python3 -m venv {name_venv}
+source {name_venv}/bin/activate
 
 <br>
 
